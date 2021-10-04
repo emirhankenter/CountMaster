@@ -1,5 +1,19 @@
 {
   "dependencies": {
+    "com.pika.mekcoroutines": {
+      "version": "https://github.com/emirhankenter/mek-coroutines.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "0b4f9dec2dfce0b830aa69a44b7fe472daad7275"
+    },
+    "com.pika.mekplayerdata": {
+      "version": "https://github.com/emirhankenter/mek-playerdata.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "c729d88dd9fb739c0b5007fabf560731ba376bf5"
+    },
     "com.unity.collab-proxy": {
       "version": "1.3.9",
       "depth": 0,
