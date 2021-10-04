@@ -1,0 +1,192 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3dbc7756eab981744a1e6ebe9285dce7, type: 3}
+  m_Name: Localization
+  m_EditorClassIdentifier: 
+  Dictionary:
+    m_keys:
+    - HI
+    - PLAY
+    - CLAIM
+    - VICTORY
+    - DEFEAT
+    - SUCCESS
+    - FAIL
+    - LEVEL
+    - TAP
+    - REWARD
+    - LEVELCOMPLETED
+    - LEVELFAIL
+    - NAME
+    - SURNAME
+    - USER
+    - PASSWORD
+    - READY
+    - GO
+    - DRAG
+    - NEWMATCH
+    - RESTART
+    - DRAW3
+    - HOME
+    - SOUNDS
+    - CONGRAGULATIONS
+    - CONTINUE
+    - SETTINGS
+    - SCORE
+    - START
+    m_values:
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - HI
+      - SELAM
+      - "CIAO\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - PLAY
+      - OYNA
+      - "GIOCARE A\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - CLAIM
+      - KAZAN
+      - "RECLAMO\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - VICTORY
+      - ZAFER
+      - "VITTORIA\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - DEFEAT
+      - YENILGI
+      - "LA SCONFITTA\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - SUCCESS
+      - BASARILI
+      - "SUCCESSO\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - FAIL
+      - BASARISIZ
+      - "FALLIRE\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - LEVEL
+      - SEVIYE
+      - "LIVELLO\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - TAP TO START
+      - BASLAMAK ICIN EKRANA DOKUN
+      - "TOCCA PER INIZIARE\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - REWARD
+      - "\xD6D\xDCL"
+      - "RICOMPENSA\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - LEVEL COMPLETED
+      - SEVIYE TAMAMLANDI
+      - "LIVELLO COMPLETATO\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - LEVEL FAILED
+      - SEVIYE BASARISIZ
+      - "LIVELLO FALLITO\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - NAME
+      - ISIM
+      - "NOME\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - SURNAME
+      - SOYISIM
+      - "COGNOME\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - USER
+      - KULLANICI
+      - "UTENTE\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - PASSWORD
+      - SIFRE
+      - "PAROLA D'ORDINE\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - READY
+      - HAZIR
+      - "PRONTO\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - GO
+      - BASLA
+      - "ANDARE\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - DRAG
+      - SURUKLE
+      - "LAGNA\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - NEW MATCH
+      - "YENI MA\xC7"
+      - "NUOVA PARTITA\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - RESTART
+      - "YENIDEN BA\u015ELA"
+      - "RICOMINCIA\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - DRAW 3
+      - "3 \xC7EK"
+      - "DISEGNA 3.\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - HOME
+      - EV
+      - "CASA\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - SOUNDS
+      - SES
+      - "SUONI\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - CONGRAGULATIONS
+      - TEBRIKLER
+      - "CONGUADIE\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - CONTINUE
+      - DEVAM ET
+      - "CONTINUA\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - SETTINGS
+      - AYARLAR
+      - "IMPOSTAZIONI\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - 'SCORE: {0}'
+      - 'SKOR: {0}'
+      - "PUNTEGGIO: {0}\r"
+    - m_keys: 0a0000002500000015000000
+      m_values:
+      - START
+      - "BA\u015ELA"
+      - COMINCIARE
+  _languages: 0a0000002500000015000000
