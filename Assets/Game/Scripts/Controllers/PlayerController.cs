@@ -86,7 +86,7 @@ namespace Game.Scripts.Controllers
             var lastScreenPoint = _cam.ScreenToViewportPoint(new Vector3(_lastMousePos.Value.x, _lastMousePos.Value.y, _cam.nearClipPlane));
             var delta = currentScreenPoint - lastScreenPoint;
             
-            Debug.Log(delta);
+            // Debug.Log(delta);
             // delta = _currentMousePos.Value - _lastMousePos.Value;
             float screenRatio = Screen.width * 1f / Screen.height * 1f;
             

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Scripts.Controllers;
+using Game.Scripts.Enums;
 using Game.Scripts.Models;
+using Mek.Extensions;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -25,6 +27,36 @@ namespace Game.Scripts.Behaviours
         
         private void Awake()
         {
+            ExaminationBlocks.ExaminationCompleted += OnExaminationCompleted;
+        }
+
+        private void OnExaminationCompleted(ExaminationData data)
+        {
+            Debug.Log($"Triggered: {data.Operation}{data.Value}");
+            
+            PopulateCrowd(CalculateCrowd(data));
+        }
+
+        private int CalculateCrowd(ExaminationData data)
+        {
+            int targetCount = _stickMen.Count;
+            switch (data.Operation)
+            {
+                case MathOperation.Addition:
+                    targetCount += Mathf.FloorToInt(data.Value);
+                    break;
+                case MathOperation.Subtraction:
+                    targetCount -= Mathf.FloorToInt(data.Value);
+                    break;
+                case MathOperation.Multiplication:
+                    targetCount *= Mathf.FloorToInt(data.Value);
+                    break;
+                case MathOperation.Division:
+                    targetCount /= Mathf.FloorToInt(data.Value);
+                    break;
+            }
+
+            return targetCount;
         }
 
         private void Start()
@@ -32,7 +64,7 @@ namespace Game.Scripts.Behaviours
             _stickManPrefab = AssetController.Instance.StickManPrefab;
             Initialize(10);
 
-            _followPoint = _stickMen.First().transform;
+            _followPoint = Enumerable.First(_stickMen).transform;
             CameraController.Instance.Follow(_followPoint);
         }
 
@@ -59,9 +91,19 @@ namespace Game.Scripts.Behaviours
 
             for (int i = 0; i < spawnCount; i++)
             {
-                var stickMan = Instantiate(_stickManPrefab, transform);
+                // var stickMan = Instantiate(_stickManPrefab, transform);
+                var stickMan = _stickManPrefab.Spawn();
+                stickMan.transform.SetParent(transform, false);
                 
                 _stickMen.Add(stickMan);
+                stickMan.SetRunning(true);
+            }
+
+            for (int i = _stickMen.Count - 1; i >= targetCount; i--)
+            {
+                var stickMan = _stickMen[i];
+                stickMan.Recycle();
+                _stickMen.Remove(stickMan);
             }
             
             SetPositions();

@@ -9,6 +9,11 @@ namespace Game.Scripts.Controllers
         [SerializeField] private StickMan _stickManPrefab;
         
         public StickMan StickManPrefab => _stickManPrefab;
+        
+        
+        [SerializeField] private ExaminationBlock _examinationBlockPrefab;
+        
+        public ExaminationBlock ExaminationBlockPrefab => _examinationBlockPrefab;
         protected override void OnAwake()
         {
         }
