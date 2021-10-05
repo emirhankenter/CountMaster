@@ -51,7 +51,7 @@ namespace Game.Scripts.Behaviours
 
         private void OnTriggerEnter(Collider other)
         {
-            if (!other.gameObject.CompareTag("Player")) return;
+            if (!other.gameObject.CompareTag("StickMan")) return;
             TriggerEntered?.Invoke(Data);
         }
     }

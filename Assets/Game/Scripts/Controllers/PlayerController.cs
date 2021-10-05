@@ -12,6 +12,7 @@ namespace Game.Scripts.Controllers
         private Vector2? _currentMousePos;
 
         private bool IsPressing => _lastMousePos.HasValue;
+        public FriendlyTeam Team => _team;
         public bool CanPlay => true;
 
         private Camera _cam;

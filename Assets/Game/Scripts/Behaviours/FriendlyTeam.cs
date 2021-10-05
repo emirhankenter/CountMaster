@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Game.Scripts.Controllers;
 using Game.Scripts.Enums;
 using Game.Scripts.Models;
@@ -12,32 +11,98 @@ namespace Game.Scripts.Behaviours
 {
     public class FriendlyTeam : Team
     {
-        [ShowInInspector, ReadOnly] private List<StickMan> _stickMen = new List<StickMan>();
-
-        private Vector3? _direction;
+        public event Action<bool> Finished;
         
-        private StickMan _stickManPrefab;
+        private Vector3? _direction;
 
         private const float ForwardSpeed = 10f;
         private const float HorizontalSpeed = 1500f;
 
-        private Transform _followPoint;
-        
-        public float Length { get; private set; }
-        
-        private void Awake()
+        public override TeamSide TeamSide => TeamSide.Friendly;
+
+        public bool IsRunning { get; private set; }
+        public bool IsFinished { get; private set; }
+
+        protected override void Awake()
         {
+            base.Awake();
+            
+            StickMan.FinishLinePassed += OnFinishLinePassed;
+            StickMan.Hit += OnHitToObstacle;
             ExaminationBlocks.ExaminationCompleted += OnExaminationCompleted;
+        }
+
+        protected override void Start()
+        {
+            base.Start();
+            
+            Initialize(1);
+
+            CameraController.Instance.Follow(transform);
+        }
+
+        public override void Initialize(int count)
+        {
+            base.Initialize(count);
+            IsFinished = false;
+            SetRunning(true);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            
+            StickMan.FinishLinePassed -= OnFinishLinePassed;
+            StickMan.Hit -= OnHitToObstacle;
+            ExaminationBlocks.ExaminationCompleted -= OnExaminationCompleted;
+        }
+
+        private void OnFinishLinePassed()
+        {
+            IsFinished = true;
+            Finished?.Invoke(true);
+            
+            CreateTriangle();
+        }
+
+        protected override void FixedUpdate()
+        {
+            if (IsFinished) return;
+            base.FixedUpdate();
+            if (IsAttacking) return;
+            var horizontalDelta = Vector3.zero;
+            var currentPosition = transform.position;
+            
+            if (_direction.HasValue && _direction.Value != Vector3.zero)
+            {
+                horizontalDelta = _direction.Value;
+            }
+
+            var targetPos = Vector3.Lerp(currentPosition, currentPosition + Vector3.forward * ForwardSpeed + horizontalDelta * HorizontalSpeed, Time.fixedDeltaTime);
+            targetPos.x = Mathf.Clamp(targetPos.x, -GameConfig.Bounds + Length, GameConfig.Bounds - Length);
+            transform.position = targetPos;
+        }
+        
+        public void LeanTowards(Vector3 direction)
+        {
+            _direction = direction;
+        }
+
+        public void CancelLeaning()
+        {
+            _direction = null;
         }
 
         private void OnExaminationCompleted(ExaminationData data)
         {
             Debug.Log($"Triggered: {data.Operation}{data.Value}");
             
-            PopulateCrowd(CalculateCrowd(data));
+            PopulateCrowd(GetCrowdCountAfterEvaluateOperation(data));
+            
+            SetRunning(true);
         }
 
-        private int CalculateCrowd(ExaminationData data)
+        private int GetCrowdCountAfterEvaluateOperation(ExaminationData data)
         {
             int targetCount = _stickMen.Count;
             switch (data.Operation)
@@ -56,159 +121,118 @@ namespace Game.Scripts.Behaviours
                     break;
             }
 
-            return targetCount;
+            return Mathf.Max(0, targetCount);
         }
 
-        private void Start()
+        private void OnHitToObstacle(StickMan stickMan)
         {
-            _stickManPrefab = AssetController.Instance.StickManPrefab;
-            Initialize(10);
+            stickMan.Recycle();
+            _stickMen.Remove(stickMan);
 
-            _followPoint = Enumerable.First(_stickMen).transform;
-            CameraController.Instance.Follow(_followPoint);
+            if (_stickMen.Count == 0)
+            {
+                IsFinished = true;
+                Finished?.Invoke(false);
+            }
         }
 
-        public void Initialize(int count)
+        private void SetRunning(bool state)
         {
-            PopulateCrowd(count);
-            // for (int i = 0; i < count; i++)
-            // {
-            //     var stickMan = Instantiate(_stickManPrefab, transform);
-            //     
-            //     _stickMen.Add(_stickManPrefab);
-            // }
-
             foreach (var stickMan in _stickMen)
             {
-                stickMan.SetRunning(true);
+                stickMan.SetRunning(state);
             }
+
+            IsRunning = state;
         }
 
-        [Button]
-        private void PopulateCrowd(int targetCount)
+        public override void DeclareWarWith(Team team)
         {
-            var spawnCount = targetCount - _stickMen.Count;
+            base.DeclareWarWith(team);
 
-            for (int i = 0; i < spawnCount; i++)
-            {
-                // var stickMan = Instantiate(_stickManPrefab, transform);
-                var stickMan = _stickManPrefab.Spawn();
-                stickMan.transform.SetParent(transform, false);
-                
-                _stickMen.Add(stickMan);
-                stickMan.SetRunning(true);
-            }
+            IsRunning = false;
+        }
 
-            for (int i = _stickMen.Count - 1; i >= targetCount; i--)
+        protected override void OnBrawlSucceed()
+        {
+            base.OnBrawlSucceed();
+            
+            IsRunning = true;
+        }
+
+        protected override void OnBrawlDefeated()
+        {
+            base.OnBrawlDefeated();
+            
+            IsRunning = true;
+        }
+        public List<int> GetStairsList()
+        {
+            var stickManTowerRowCountList = new List<int>();
+            var remainingCount = _stickMen.Count;
+            var index = 0;
+
+            while (remainingCount > 0)
             {
-                var stickMan = _stickMen[i];
-                stickMan.Recycle();
-                _stickMen.Remove(stickMan);
+                var stickManCount = Mathf.RoundToInt(0.220576f * Mathf.Pow(index, 1.24525f) + 0.796018f);
+                Debug.Log(stickManCount);
+                index++;
+                remainingCount -= stickManCount;
+                stickManTowerRowCountList.Add(stickManCount);
             }
             
-            SetPositions();
+            return stickManTowerRowCountList;
         }
 
-        private void SetPositions()
+#if UNITY_EDITOR
+        
+        private void CreateTriangle()
         {
-            var targetPositionList =
-                GetPositionListAround(Vector3.zero, new float[] {1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f}, new int[] {5, 10, 20, 30, 40, 50, 60, 70, 80, 90});
-
-            var targetPositionListIndex = 0;
-
-            Length = 0;
             foreach (var stickMan in _stickMen)
             {
-                var targetPos = targetPositionList[targetPositionListIndex];
-                stickMan.transform.localPosition = targetPos;
-                targetPositionListIndex = (targetPositionListIndex + 1) % targetPositionList.Count;
-                stickMan.SetTargetPosition(targetPos);
+                DestroyImmediate(stickMan.gameObject);
+            }
+            _stickMen.Clear();
 
-                if (targetPos.x > Length)
+            var stickManCountList = GetStairsList();
+            var remainingCount = _stickMen.Count;
+
+            stickManCountList.Reverse();
+
+            var index = 0;
+            for (int i = 0; i < stickManCountList.Count; i++)
+            {
+                var stickManCount = stickManCountList[i];
+                var bounds = stickManCount / 2f - 0.5f;
+                
+                for (int j = 0; j < stickManCount && remainingCount > 0; j++)
                 {
-                    Length = targetPos.x;
+                    var pos = new Vector3(-bounds + (1 * j), 1.8f * i, 0);
+            
+                    // var stickMan = Instantiate(_stickManPrefabbb, pos, Quaternion.identity, transform);
+                    // _stickMen.Add(stickMan);
+
+                    var stickMan = _stickMen[index];
+                    
+                    stickMan.transform.localPosition = pos; // todo: call tower method
+                    index++;
+                    remainingCount--;
                 }
             }
-            Debug.Log(Length);
-        }
-        
-        public void LeanTowards(Vector3 direction)
-        {
-            _direction = direction;
-            // foreach (var stickMan in _stickMen)
+            //
+            // for (int i = stickManCountList.Count - 1; i >= 0; i--)
             // {
-            //     stickMan.LeanTowards(direction);
+            //     var stickManCount = stickManCountList[i];
+            //     
+            //     for (int j = 0; j < stickManCount; j++)
+            //     {
+            //         var pos = new Vector3(1 * j, 2 * i, 0);
+            //
+            //         var stickMan = Instantiate(_stickManPrefabbb, pos, Quaternion.identity, transform);
+            //         _stickMen.Add(stickMan);
+            //     }
             // }
         }
-
-        public void CancelLeaning()
-        {
-            _direction = null;
-            // foreach (var stickMan in _stickMen)
-            // {
-            //     stickMan.CancelLeaning();
-            // }
-        }
-        
-        private void FixedUpdate()
-        {
-            var horizontalDelta = Vector3.zero;
-            var currentPosition = transform.position;
-            
-            if (_direction.HasValue && _direction.Value != Vector3.zero)
-            {
-                var newPosition = Vector3.MoveTowards(currentPosition, currentPosition + _direction.Value, Mathf.Infinity);
-
-                horizontalDelta = Vector3.Lerp(Vector3.zero, newPosition - currentPosition, 50 * Time.fixedDeltaTime);
-                horizontalDelta = newPosition - currentPosition;
-                horizontalDelta = _direction.Value;
-
-                // var lerpedPosition = Mathf.Lerp(currentPosition.x, newPosition.x, HorizontalSpeed * Time.fixedDeltaTime);
-            }
-
-            var targetPos = Vector3.Lerp(currentPosition, currentPosition + Vector3.forward * ForwardSpeed + horizontalDelta * HorizontalSpeed, Time.fixedDeltaTime);
-            targetPos.x = Mathf.Clamp(targetPos.x, -GameConfig.Bounds + Length, GameConfig.Bounds - Length);
-            transform.position = targetPos;
-        }
-
-
-        private void LateUpdate()
-        {
-            // var followPointPos = _followPoint.position;
-            // followPointPos.x = 0;
-            // _followPoint.position = followPointPos;
-        }
-
-        private List<Vector3> GetPositionListAround(Vector3 startPosition, float[] ringDistanceArray, int[] ringPositionCountArray)
-        {
-            List<Vector3> positionList = new List<Vector3>(){startPosition};
-
-            for (int i = 0; i < ringDistanceArray.Length; i++)
-            {
-                positionList.AddRange(GetPositionListAround(startPosition, ringDistanceArray[i], ringPositionCountArray[i]));
-            }
-            
-            return positionList;
-        }
-
-        private List<Vector3> GetPositionListAround(Vector3 startPosition, float distance, int positionCount)
-        {
-            List<Vector3> positionList = new List<Vector3>();
-
-            for (int i = 0; i < positionCount; i++)
-            {
-                float angle = i * (360f / positionCount);
-                Vector3 dir = ApplyRotationToVector(new Vector3(1,0), angle);
-                Vector3 position = startPosition + dir * distance;
-                positionList.Add(position);
-            }
-            
-            return positionList;
-        }
-
-        private Vector3 ApplyRotationToVector(Vector3 vec, float angle)
-        {
-            return Quaternion.Euler(0, angle, 0) * vec;
-        }
+#endif
     }
 }

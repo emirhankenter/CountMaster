@@ -979,7 +979,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0bcdca085445acc4aa21304ffa02deba, type: 2}
+  - {fileID: 2100000, guid: f5a0ae3b61b12874ca18bd89bf53f270, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1057,7 +1057,7 @@ GameObject:
   - component: {fileID: 4195446256395212978}
   m_Layer: 0
   m_Name: Stickman
-  m_TagString: Player
+  m_TagString: StickMan
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1109,9 +1109,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c841ea2f3d18314d8c8769914fe43fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rigidbody: {fileID: 0}
-  _collider: {fileID: 0}
+  _rigidbody: {fileID: 4195446256395212978}
+  _collider: {fileID: 6175049154609171611}
   _agent: {fileID: 8122573896953347684}
+  _renderer: {fileID: 3302175642964794160}
   _animator: {fileID: 3302175642960586224}
 --- !u!136 &6175049154609171611
 CapsuleCollider:
@@ -1123,7 +1124,7 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.3
+  m_Radius: 0.5
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
@@ -1136,7 +1137,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 3302175642951194206}
   m_Enabled: 0
   m_AgentTypeID: 0
-  m_Radius: 0.5
+  m_Radius: 0.33
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
