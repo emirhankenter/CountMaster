@@ -22,7 +22,7 @@ namespace Game.Scripts.Controllers
         
         protected override void OnAwake()
         {
-            LocalizationManager.Init(SystemLanguage.Turkish);
+            LocalizationManager.Init(SystemLanguage.English);
             PrefsManager.Initialize(PlayerData.Prefs);
             
             MekGM.Instance.DoAfterInitialized(() =>

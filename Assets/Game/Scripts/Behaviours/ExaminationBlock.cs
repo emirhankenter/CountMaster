@@ -1,5 +1,6 @@
 using System;
 using Game.Scripts.Enums;
+using Game.Scripts.Models;
 using TMPro;
 using UnityEngine;
 
@@ -19,9 +20,9 @@ namespace Game.Scripts.Behaviours
             Data = data;
             
             var color = Data.Operation == MathOperation.Addition || Data.Operation == MathOperation.Multiplication
-                ? Color.green
-                : Color.red;
-            color.a = 0.5f;
+                ? GameConfig.StickManColorFriendly
+                : GameConfig.StickManColorEnemy;
+            color.a = 0.8f;
             _renderer.material.color = color;
             
             SetText();
