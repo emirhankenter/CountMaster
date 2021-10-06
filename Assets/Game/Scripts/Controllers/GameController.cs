@@ -61,9 +61,10 @@ namespace Game.Scripts.Controllers
 
             var reward = Mathf.RoundToInt(PlayerData.Instance.PlayerLevel * 10 * multiplier);
 
-            Navigation.Panel.Change(new EndGamePanelParameters(OnRewardClaimed));
+            Navigation.Panel.Change(new EndGamePanelParameters(reward, OnRewardClaimed));
 
             PlayerData.Instance.Coin += reward;
+            PlayerData.Instance.PlayerLevel++;
         }
 
         private void OnRewardClaimed()

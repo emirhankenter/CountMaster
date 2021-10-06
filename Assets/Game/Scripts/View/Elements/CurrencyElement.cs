@@ -19,13 +19,13 @@ namespace Game.Scripts.View.Elements
             }
             else
             {
-                _coinNumberAnimator.SetCurrent(current);
+                _coinNumberAnimator.SetCurrent(current, roundToInt: true);
             }
         }
 
         public void UpdateValue(float to)
         {
-            _coinNumberAnimator.UpdateValue(to);
+            _coinNumberAnimator.UpdateValue(to, roundToInt: true);
         }
     }
 }

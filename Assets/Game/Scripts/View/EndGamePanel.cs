@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Game.Scripts.Models;
 using Game.Scripts.View.Elements;
+using Mek.Coroutines;
 using Mek.Helpers;
 using Mek.Localization;
 using Mek.Navigation;
@@ -14,9 +15,10 @@ namespace Game.Scripts.View
     public class EndGamePanel : Panel
     {
         [SerializeField] private CurrencyElement _currencyElement;
+        [SerializeField] private Button _claimButton;
         [SerializeField] private Text _rewardText;
         
-        private NumberAnimator _coinNumberAnimator;
+        private NumberAnimator _coinRewardNumberAnimator;
 
         private EndGamePanelParameters _params;
         
@@ -27,9 +29,10 @@ namespace Game.Scripts.View
             _params = viewParams as EndGamePanelParameters;
             if(_params == null) return;
             
-            _coinNumberAnimator = new NumberAnimator(PlayerData.Instance.Coin, _rewardText);
+            _coinRewardNumberAnimator = new NumberAnimator(_params.Reward, _rewardText);
             
             _currencyElement.Init(PlayerData.Instance.Coin);
+            _claimButton.interactable = true;
         }
 
         public override void Close()
@@ -39,13 +42,18 @@ namespace Game.Scripts.View
 
         public void OnClaimButtonClicked()
         {
+            _claimButton.interactable = false;
             UpdateCoin();
-            _params?.OnClaimed?.Invoke();
+            
+            CoroutineController.DoAfterGivenTime(2f, () =>
+            {
+                _params?.OnClaimed?.Invoke();
+            });
         }
 
-        public void UpdateCoin()
+        private void UpdateCoin()
         {
-            _coinNumberAnimator.UpdateValue(0);
+            _coinRewardNumberAnimator.UpdateValue(0, roundToInt: true);
             _currencyElement.UpdateValue(PlayerData.Instance.Coin);
         }
     }

@@ -7,9 +7,11 @@ namespace Game.Scripts.View
     public class EndGamePanelParameters : ViewParams
     {
         public Action OnClaimed;
+        public int Reward;
         
-        public EndGamePanelParameters(Action onClaimed) : base(ViewTypes.EndGamePanel)
+        public EndGamePanelParameters(int reward, Action onClaimed) : base(ViewTypes.EndGamePanel)
         {
+            Reward = reward;
             OnClaimed = onClaimed;
         }
     }

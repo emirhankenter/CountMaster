@@ -132,7 +132,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2832591208748264010, guid: a1fd0370c4624ec48aaf05347c6e249b, type: 3}
       propertyPath: m_Name
-      value: CurrencyElement (1)
+      value: CurrencyElement
       objectReference: {fileID: 0}
     - target: {fileID: 2832591208748264014, guid: a1fd0370c4624ec48aaf05347c6e249b, type: 3}
       propertyPath: m_Pivot.x
@@ -1221,6 +1221,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _currencyElement: {fileID: 70085063}
+  _claimButton: {fileID: 760227920}
   _rewardText: {fileID: 1094341725}
 --- !u!224 &1143181232
 RectTransform:
