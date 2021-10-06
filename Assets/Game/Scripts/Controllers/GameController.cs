@@ -2,11 +2,13 @@
 using Game.Scripts.Behaviours;
 using Game.Scripts.Models;
 using Game.Scripts.View;
+using GameAnalyticsSDK;
 using Mek.Controllers;
 using Mek.Coroutines;
 using Mek.Localization;
 using Mek.Models;
 using Mek.Navigation;
+using Mek.Scripts.Controllers;
 using Mek.Utilities;
 using UnityEngine;
 
@@ -44,6 +46,8 @@ namespace Game.Scripts.Controllers
             _playerController.Initialize();
 
             Navigation.Panel.Change(ViewTypes.InGamePanel);
+            
+            AnalyticsController.Instance.LogEvent(GAErrorSeverity.Debug, "LevelStarted");
         }
 
         private void DisposeLevel()
@@ -65,6 +69,8 @@ namespace Game.Scripts.Controllers
 
             PlayerData.Instance.Coin += reward;
             PlayerData.Instance.PlayerLevel++;
+            
+            AnalyticsController.Instance.LogEvent(GAErrorSeverity.Debug, $"LevelCompleted:{(state ? 1 : 0)}");
         }
 
         private void OnRewardClaimed()

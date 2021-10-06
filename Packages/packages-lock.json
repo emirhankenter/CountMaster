@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.gameanalytics.sdk": {
+      "version": "https://github.com/GameAnalytics/GA-SDK-UNITY.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "e9a7071818833ce4b67a633b6834085c129f6dbe"
+    },
     "com.pika.mekcoroutines": {
       "version": "https://github.com/emirhankenter/mek-coroutines.git",
       "depth": 0,

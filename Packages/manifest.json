@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.gameanalytics.sdk": "https://github.com/GameAnalytics/GA-SDK-UNITY.git",
     "com.pika.mekcoroutines": "https://github.com/emirhankenter/mek-coroutines.git",
     "com.pika.mekplayerdata": "https://github.com/emirhankenter/mek-playerdata.git",
     "com.unity.cinemachine": "2.6.10",
