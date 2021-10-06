@@ -29,6 +29,7 @@ namespace Game.Scripts.Behaviours
 
         public void Dispose()
         {
+            _finalStage.Dispose();
         }
 
         private void OnPlayerPassedFinishLine()

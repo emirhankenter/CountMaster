@@ -22,6 +22,8 @@ namespace Game.Scripts.Behaviours
         private List<Stair> _stairs = new List<Stair>();
         
         private static Stair _stairPrefab;
+
+        [SerializeField] private LayerMask _layerMask;
         
         private void Awake()
         {
@@ -97,7 +99,9 @@ namespace Game.Scripts.Behaviours
 
             var stair = GetStair();
             var multiplier = stair != null ? stair.Multiplier : 1;
+            
             Debug.Log($"MultipliedBy: {multiplier}");
+            stair.PlayRGB();
             Multiplied?.Invoke(multiplier);
             Complete(true);
         }
@@ -113,9 +117,9 @@ namespace Game.Scripts.Behaviours
                 .OrderByDescending(s => s.transform.position.y)
                 .First();
 
-            var ray = new Ray(stickManOnTop.transform.position, Vector3.down);
+            var ray = new Ray(stickManOnTop.transform.position + Vector3.up, Vector3.down);
 
-            if (Physics.Raycast(ray, out var hit))
+            if (Physics.Raycast(ray, out var hit, Mathf.Infinity, _layerMask))
             {
                 var stair = hit.collider.GetComponentInParent<Stair>();
                 if (stair)
