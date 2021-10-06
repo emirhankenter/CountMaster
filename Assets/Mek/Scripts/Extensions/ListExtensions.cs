@@ -8,6 +8,7 @@ namespace Mek.Extensions
 
         public static T RandomElement<T>(this IList<T> list)
         {
+            if (list.Count == 0) return default;
             var index = Random.Next(0, list.Count);
             return list[index];
         }

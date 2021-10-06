@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using DG.Tweening;
 using Game.Scripts.Models;
+using Mek.Coroutines;
 using Mek.Extensions;
 using Mek.Interfaces;
 using UnityEngine;
@@ -12,8 +13,7 @@ namespace Game.Scripts.Behaviours
     public class StickMan : MonoBehaviour, IRecycleCallbackReceiver
     {
         public static event Action FinishLinePassed;
-        public static event Action<StickMan> Hit;
-        public static event Action<StickMan> Smashed;
+        public static event Action<StickMan> Lost;
         
         [SerializeField] private Rigidbody _rigidbody;
         [SerializeField] private Collider _collider;
@@ -37,7 +37,11 @@ namespace Game.Scripts.Behaviours
         
         private bool Active { get; set; }
         private bool IsFinishing { get; set; }
+        public bool HasChased { get; private set; }
+        public bool IsFormingAsTower { get; private set; }
+        public bool IsStopped { get; private set; }
 
+        private string _chaseRoutineKey => $"{GetInstanceID()}chaseRoutine";
         private void Awake()
         {
             // _agent.SetDestination(transform.position + Vector3.forward * 0.1f);
@@ -68,11 +72,7 @@ namespace Game.Scripts.Behaviours
         private void FixedUpdate()
         {
             if (_agent.enabled) return;
-
-            // if (_isChasing && _targetPosition.HasValue)
-            // {
-            //     transform.localPosition = Vector3.Lerp(transform.localPosition, _targetPosition.Value, Time.fixedDeltaTime);
-            // }
+            if (IsFormingAsTower) return;
             var relativePos = Vector3.zero;
             if (_targetPosition.HasValue)
             {
@@ -80,27 +80,7 @@ namespace Game.Scripts.Behaviours
                 // relativePos = _targetPosition.Value - transform.position;
             }
             
-            transform.eulerAngles = Vector3.Lerp(transform.eulerAngles, Vector3.zero, Time.fixedDeltaTime * 10f);
-
-            // transform.rotation = Quaternion.LookRotation(relativePos, Vector3.up);
-            
-            
-            
-            // var horizontalDelta = Vector3.zero;
-            //
-            // if (_direction.HasValue && _direction.Value != Vector3.zero)
-            // {
-            //     var currentPosition = transform.position;
-            //     // var newPosition = Vector3.MoveTowards(currentPosition, currentPosition + _direction.Value, Mathf.Infinity);
-            //     var newPosition = Vector3.MoveTowards(currentPosition, currentPosition + _direction.Value, Mathf.Infinity);
-            //
-            //     horizontalDelta = Vector3.Lerp(Vector3.zero, newPosition - currentPosition, HorizontalSpeed * Time.fixedDeltaTime);
-            //
-            //     // var lerpedPosition = Mathf.Lerp(currentPosition.x, newPosition.x, HorizontalSpeed * Time.fixedDeltaTime);
-            // }
-            //
-            //
-            // _agent.SetDestination(transform.position + Vector3.forward * 1f  + horizontalDelta * 5);
+            transform.localEulerAngles = Vector3.Lerp(transform.localEulerAngles, Vector3.zero, Time.fixedDeltaTime * 10f);
         }
         
         public void SetRunning(bool state)
@@ -114,7 +94,7 @@ namespace Game.Scripts.Behaviours
             
             if (other.gameObject.CompareTag("Obstacle"))
             {
-                Hit?.Invoke(this);
+                OnHit();
             }
             else if (other.gameObject.CompareTag("Team"))
             {
@@ -125,17 +105,20 @@ namespace Game.Scripts.Behaviours
                 _team.DeclareWarWith(team);
                 team.DeclareWarWith(_team);
             }
-            else if (other.gameObject.CompareTag("Finish"))
+            else if (other.gameObject.CompareTag("FinishLine"))
             {
+                if (_team.TeamSide != TeamSide.Friendly || !(_team is FriendlyTeam friendlyTeam)) return;
+                if (friendlyTeam.HasPassedFinishLine) return;
                 Debug.Log("finishLinePassed");
                 OnFinishLinePassed();
                 FinishLinePassed?.Invoke();
             }
-        }
-
-        private void OnFinishLinePassed()
-        {
-            IsFinishing = true;
+            else if (other.gameObject.CompareTag("StairTrigger"))
+            {
+                transform.SetParent(null, true);
+                SetRunning(false);
+                IsStopped = true;
+            }
         }
 
         private void OnCollisionEnter(Collision other)
@@ -144,19 +127,68 @@ namespace Game.Scripts.Behaviours
             {
                 var otherStickMan = other.gameObject.GetComponent<StickMan>();
                 if (otherStickMan._team.TeamSide == _team.TeamSide) return;
-                Debug.Log("Dead");
                 OnSmashed();
-                this.Recycle();
             }
         }
 
-        public void MoveToDestinationWithAgent(Vector3 position)
+        private void OnSmashed()
         {
+            this.Recycle();
+            Lost?.Invoke(this);
+            if (CoroutineController.IsCoroutineRunning(_chaseRoutineKey))
+            {
+                CoroutineController.StopCoroutine(_chaseRoutineKey);
+            }
+        }
+
+        private void OnHit()
+        {
+            this.Recycle();
+            Lost?.Invoke(this);
+            if (CoroutineController.IsCoroutineRunning(_chaseRoutineKey))
+            {
+                CoroutineController.StopCoroutine(_chaseRoutineKey);
+            }
+        }
+
+        private void OnFinishLinePassed()
+        {
+            IsFinishing = true;
+        }
+
+        public void Chase()
+        {
+            var target = _team.GetAStickManToChase();
+            if (!target) return;
             ToggleAgent(true);
             // _targetPosition = position;
             _isChasing = true;
 
-            _agent.SetDestination(position);
+            if (CoroutineController.IsCoroutineRunning(_chaseRoutineKey))
+            {
+                CoroutineController.StopCoroutine(_chaseRoutineKey);
+            }
+            ChaseRoutine().StartCoroutine(_chaseRoutineKey);
+            // _agent.SetDestination(position);
+        }
+            
+        IEnumerator ChaseRoutine()
+        {
+            var target = _team.GetAStickManToChase();
+            while (true)
+            {
+                if (!Active) yield break;
+                if (!target.Active)
+                {
+                    target = _team.GetAStickManToChase();
+                }
+
+                if (target == null) yield break;
+                
+                _agent.SetDestination(target.transform.position);
+
+                yield return new WaitForSeconds(1f);
+            }
         }
 
         public void ToggleAgent(bool state)
@@ -164,6 +196,15 @@ namespace Game.Scripts.Behaviours
             // _isChasing = state;
             // return;
             // _rigidbody.isKinematic = state;
+
+            if (!state)
+            {
+                if (CoroutineController.IsCoroutineRunning(_chaseRoutineKey))
+                {
+                    CoroutineController.StopCoroutine(_chaseRoutineKey);
+                }
+            }
+            
             if (state && _agent.enabled)
             {
                 _agent.ResetPath();
@@ -171,15 +212,35 @@ namespace Game.Scripts.Behaviours
             _agent.enabled = state;
         }
 
-        private void OnSmashed()
+        public void FormUpAsTower(Vector3 targetLocalPosition, float delay)
         {
-            Smashed?.Invoke(this);
+            if (IsFormingAsTower) return;
+            IsFormingAsTower = true;
+
+            // transform.localPosition = targetLocalPosition;
+            
+            // if (CoroutineController.IsCoroutineRunning(_formUpRoutineKey))
+            // {
+            //     CoroutineController.StopCoroutine(_formUpRoutineKey);
+            // }
+            // FormUpAsTowerRoutine().StartCoroutine(_formUpRoutineKey);
+
+            transform.DOLocalMove(targetLocalPosition, 0.01f)
+                .SetDelay(delay)
+                .SetEase(Ease.Linear);
+
+            _targetPosition = targetLocalPosition;
         }
 
         public void OnRecycle()
         {
             Active = false;
-            // _rigidbody.isKinematic = true;
+            _isChasing = false;
+            HasChased = false;
+            IsFinishing = false;
+            IsFormingAsTower = false;
+            IsStopped = false;
+            _agent.enabled = false;
         }
     }
 }

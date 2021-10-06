@@ -17,6 +17,8 @@ namespace Game.Scripts.Controllers
         public ExaminationBlock ExaminationBlockPrefab => _examinationBlockPrefab;
 
         public List<Color> StairColors = new List<Color>();
+
+        public Stair StairPrefab;
         protected override void OnAwake()
         {
         }

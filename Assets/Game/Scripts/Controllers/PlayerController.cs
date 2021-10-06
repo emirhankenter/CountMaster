@@ -17,14 +17,20 @@ namespace Game.Scripts.Controllers
 
         private Camera _cam;
 
-        private void Start()
-        {
-            Initialize();
-        }
-
         public void Initialize()
         {
-            _cam = CameraController.Instance.MainCamera;
+            if (_cam == null)
+            {
+                _cam = CameraController.Instance.MainCamera;
+            }
+            var teamT = _team.transform;
+            teamT.position = Vector3.zero;
+            teamT.eulerAngles = Vector3.zero;
+        }
+
+        public void Dispose()
+        {
+            
         }
 
         private void Update()

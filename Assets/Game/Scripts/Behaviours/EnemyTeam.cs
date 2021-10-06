@@ -31,6 +31,11 @@ namespace Game.Scripts.Behaviours
             base.Dispose();
         }
 
+        protected override void OnStickManLost(StickMan stickMan)
+        {
+            base.OnStickManLost(stickMan);
+        }
+
 #if UNITY_EDITOR
         [SerializeField, HideInInspector] private SphereCollider _sphereCollider;
         private void OnDrawGizmos()

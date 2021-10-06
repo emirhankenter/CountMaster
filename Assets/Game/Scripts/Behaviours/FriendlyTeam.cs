@@ -1,35 +1,43 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using DG.Tweening;
 using Game.Scripts.Controllers;
 using Game.Scripts.Enums;
 using Game.Scripts.Models;
-using Mek.Extensions;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Scripts.Behaviours
 {
     public class FriendlyTeam : Team
     {
-        public event Action<bool> Finished;
+        public event Action<bool> PassedFinishLine;
         
         private Vector3? _direction;
 
         private const float ForwardSpeed = 10f;
-        private const float HorizontalSpeed = 1500f;
+        private const float HorizontalSpeed = 2500f;
 
         public override TeamSide TeamSide => TeamSide.Friendly;
 
         public bool IsRunning { get; private set; }
         public bool IsFinished { get; private set; }
+        public bool HasPassedFinishLine { get; private set; }
+
+        private Transform _followPoint;
+
+        private List<List<StickMan>> _triangularStickMan = new List<List<StickMan>>();
 
         protected override void Awake()
         {
             base.Awake();
             
             StickMan.FinishLinePassed += OnFinishLinePassed;
-            StickMan.Hit += OnHitToObstacle;
+            StickMan.Lost += OnStickManLost;
             ExaminationBlocks.ExaminationCompleted += OnExaminationCompleted;
+            _followPoint = new GameObject("FollowPoint").transform;
+            _followPoint.SetParent(transform, false);
         }
 
         protected override void Start()
@@ -38,7 +46,8 @@ namespace Game.Scripts.Behaviours
             
             Initialize(1);
 
-            CameraController.Instance.Follow(transform);
+            CameraController.Instance.Follow(_followPoint);
+            CameraController.Instance.ChangeState(CameraState.Running);
         }
 
         public override void Initialize(int count)
@@ -53,16 +62,24 @@ namespace Game.Scripts.Behaviours
             base.Dispose();
             
             StickMan.FinishLinePassed -= OnFinishLinePassed;
-            StickMan.Hit -= OnHitToObstacle;
+            StickMan.Lost -= OnStickManLost;
             ExaminationBlocks.ExaminationCompleted -= OnExaminationCompleted;
+            
+            _triangularStickMan.Clear();
         }
 
         private void OnFinishLinePassed()
         {
-            IsFinished = true;
-            Finished?.Invoke(true);
+            if (HasPassedFinishLine) return;
+            HasPassedFinishLine = true;
+            PassedFinishLine?.Invoke(true);
             
-            CreateTriangle();
+            // CreateTriangle();
+        }
+
+        private void OnStickMenStopped()
+        {
+            IsFinished = true;
         }
 
         protected override void FixedUpdate()
@@ -72,13 +89,27 @@ namespace Game.Scripts.Behaviours
             if (IsAttacking) return;
             var horizontalDelta = Vector3.zero;
             var currentPosition = transform.position;
+
+            if (_stickMen.All(s => s.IsStopped))
+            {
+                OnStickMenStopped();
+            }
             
             if (_direction.HasValue && _direction.Value != Vector3.zero)
             {
                 horizontalDelta = _direction.Value;
             }
 
-            var targetPos = Vector3.Lerp(currentPosition, currentPosition + Vector3.forward * ForwardSpeed + horizontalDelta * HorizontalSpeed, Time.fixedDeltaTime);
+            var targetPos = Vector3.zero;
+            if (HasPassedFinishLine)
+            {
+                targetPos = Vector3.Lerp(currentPosition, new Vector3(0, currentPosition.y, currentPosition.z) + Vector3.forward * ForwardSpeed, Time.fixedDeltaTime);
+            }
+            else
+            {
+                targetPos = Vector3.Lerp(currentPosition, currentPosition + Vector3.forward * ForwardSpeed + horizontalDelta * HorizontalSpeed, Time.fixedDeltaTime);
+            }
+            
             targetPos.x = Mathf.Clamp(targetPos.x, -GameConfig.Bounds + Length, GameConfig.Bounds - Length);
             transform.position = targetPos;
         }
@@ -124,16 +155,12 @@ namespace Game.Scripts.Behaviours
             return Mathf.Max(0, targetCount);
         }
 
-        private void OnHitToObstacle(StickMan stickMan)
+        protected override void OnStickManLost(StickMan stickMan)
         {
-            stickMan.Recycle();
-            _stickMen.Remove(stickMan);
-
-            if (_stickMen.Count == 0)
-            {
-                IsFinished = true;
-                Finished?.Invoke(false);
-            }
+            base.OnStickManLost(stickMan);
+            if (_stickMen.Count != 0 || IsFinished) return;
+            IsFinished = true;
+            PassedFinishLine?.Invoke(false);
         }
 
         private void SetRunning(bool state)
@@ -157,6 +184,7 @@ namespace Game.Scripts.Behaviours
         {
             base.OnBrawlSucceed();
             
+            SetPositions(false);
             IsRunning = true;
         }
 
@@ -164,6 +192,7 @@ namespace Game.Scripts.Behaviours
         {
             base.OnBrawlDefeated();
             
+            SetPositions(false);
             IsRunning = true;
         }
         public List<int> GetStairsList()
@@ -183,27 +212,21 @@ namespace Game.Scripts.Behaviours
             
             return stickManTowerRowCountList;
         }
-
-#if UNITY_EDITOR
-        
-        private void CreateTriangle()
+        public void CreateTriangle()
         {
-            foreach (var stickMan in _stickMen)
-            {
-                DestroyImmediate(stickMan.gameObject);
-            }
-            _stickMen.Clear();
-
-            var stickManCountList = GetStairsList();
+            var stairsList = GetStairsList();
             var remainingCount = _stickMen.Count;
 
-            stickManCountList.Reverse();
+            stairsList.Reverse();
 
             var index = 0;
-            for (int i = 0; i < stickManCountList.Count; i++)
+            var lastY = 0f;
+            for (int i = 0; i < stairsList.Count && remainingCount > 0; i++)
             {
-                var stickManCount = stickManCountList[i];
+                var stickManCount = stairsList[i];
                 var bounds = stickManCount / 2f - 0.5f;
+
+                var stickMen = new List<StickMan>();
                 
                 for (int j = 0; j < stickManCount && remainingCount > 0; j++)
                 {
@@ -213,26 +236,24 @@ namespace Game.Scripts.Behaviours
                     // _stickMen.Add(stickMan);
 
                     var stickMan = _stickMen[index];
+                    stickMen.Add(stickMan);
                     
-                    stickMan.transform.localPosition = pos; // todo: call tower method
+                    // stickMan.SetTargetPosition(pos); // todo: call tower method
+                    stickMan.FormUpAsTower(pos, index * 0.01f);
                     index++;
                     remainingCount--;
+                    lastY = pos.y;
                 }
+                
+                _triangularStickMan.Add(stickMen);
             }
-            //
-            // for (int i = stickManCountList.Count - 1; i >= 0; i--)
-            // {
-            //     var stickManCount = stickManCountList[i];
-            //     
-            //     for (int j = 0; j < stickManCount; j++)
-            //     {
-            //         var pos = new Vector3(1 * j, 2 * i, 0);
-            //
-            //         var stickMan = Instantiate(_stickManPrefabbb, pos, Quaternion.identity, transform);
-            //         _stickMen.Add(stickMan);
-            //     }
-            // }
+            
+            CameraController.Instance.FollowTriangularStickMen(_triangularStickMan, index * 0.05f);
+
+            _followPoint.DOLocalMove(new Vector3(0, lastY, 0), 1.5f)
+                .SetLoops(2, LoopType.Yoyo);
+            
+            CameraController.Instance.Follow(_followPoint);
         }
-#endif
     }
 }

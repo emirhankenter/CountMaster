@@ -24,7 +24,7 @@ namespace Game.Scripts.Behaviours
             
             Started?.Invoke();
 
-            _playerController.Team.Finished += OnPlayerFinished;
+            _playerController.Team.PassedFinishLine += OnPlayerPassedFinishLine;
         }
 
         public void Dispose()
@@ -36,8 +36,10 @@ namespace Game.Scripts.Behaviours
             if (_finalStage is StairsStage stairsStage)
             {
                 var desiredStairsCount = _playerController.Team.GetStairsList().Count;
+                stairsStage.SetData(_playerController, desiredStairsCount);
                 stairsStage.Init();
-                stairsStage.SetDesiredStairs(desiredStairsCount);
+                
+                _playerController.Team.CreateTriangle();
             }
         }
 
@@ -45,7 +47,7 @@ namespace Game.Scripts.Behaviours
         {
         }
 
-        private void OnPlayerFinished(bool isSuccess)
+        private void OnPlayerPassedFinishLine(bool isSuccess)
         {
             if (isSuccess)
             {

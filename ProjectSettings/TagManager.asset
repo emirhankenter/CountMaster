@@ -9,6 +9,7 @@ TagManager:
   - StickMan
   - Team
   - FinishLine
+  - StairTrigger
   layers:
   - Default
   - TransparentFX

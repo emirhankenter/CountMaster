@@ -33,7 +33,7 @@ namespace Game.Scripts.Behaviours
 
         protected virtual void Awake()
         {
-            StickMan.Smashed += OnStickManSmashed;
+            StickMan.Lost += OnStickManLost;
         }
 
         protected virtual void Start()
@@ -48,7 +48,7 @@ namespace Game.Scripts.Behaviours
 
         public virtual void Dispose()
         {
-            StickMan.Smashed -= OnStickManSmashed;
+            StickMan.Lost -= OnStickManLost;
             
             foreach (var stickMan in _stickMen)
             {
@@ -109,7 +109,6 @@ namespace Game.Scripts.Behaviours
                     Length = targetPos.x;
                 }
             }
-            Debug.Log(Length);
         }
         
         private List<Vector3> GetPositionListAround(Vector3 startPosition, float[] ringDistanceArray, int[] ringPositionCountArray)
@@ -151,7 +150,7 @@ namespace Game.Scripts.Behaviours
             
             foreach (var stickMan in _stickMen)
             {
-                stickMan.MoveToDestinationWithAgent(team.transform.position);
+                stickMan.Chase();
             }
         }
 
@@ -177,15 +176,15 @@ namespace Game.Scripts.Behaviours
             }
         }
 
-        private void OnStickManSmashed(StickMan stickMan)
+        protected virtual void OnStickManLost(StickMan stickMan)
         {
+            // stickMan.Recycle();
             _stickMen.Remove(stickMan);
         }
 
         protected virtual void FixedUpdate()
         {
             if (!IsAttacking) return;
-            Debug.Log($"Team {TeamSide} attacking to {AttackingTo}");
 
             if (AttackingTo.IsLost)
             {
@@ -195,6 +194,20 @@ namespace Game.Scripts.Behaviours
             {
                 OnBrawlDefeated();
             }
+        }
+
+        public StickMan GetAStickManToChase()
+        {
+            if (!AttackingTo) return null;
+            
+            var stickMan = AttackingTo.StickMen.Find(s => !s.HasChased);
+
+            if (!stickMan)
+            {
+                stickMan = AttackingTo.StickMen.RandomElement();
+            }
+
+            return stickMan;
         }
 
         private void OnTriggerEnter(Collider other)

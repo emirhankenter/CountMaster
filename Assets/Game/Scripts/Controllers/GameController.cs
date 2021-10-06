@@ -37,6 +37,8 @@ namespace Game.Scripts.Controllers
             CurrentLevel.Initialize(_playerController);
 
             CurrentLevel.Completed += OnLevelCompleted;
+            
+            _playerController.Initialize();
         }
 
         private void DisposeLevel()
@@ -45,6 +47,8 @@ namespace Game.Scripts.Controllers
             CurrentLevel.Dispose();
             
             Destroy(CurrentLevel.gameObject);
+
+            _playerController.Dispose();
         }
         private void OnLevelCompleted(bool state)
         {

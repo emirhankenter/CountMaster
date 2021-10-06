@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Scripts.Controllers;
 using Mek.Coroutines;
+using Mek.Extensions;
 using UnityEngine;
 
 namespace Game.Scripts.Behaviours
@@ -17,16 +18,51 @@ namespace Game.Scripts.Behaviours
         private string _evaluationRoutineKey => $"evaluationRoutine{GetInstanceID()}";
 
         private float _stairsCount;
+
+        private List<Stair> _stairs = new List<Stair>();
         
-        public void SetDesiredStairs(int count)
+        private static Stair _stairPrefab;
+        
+        private void Awake()
         {
-            _stairsCount = count;
+            if (_stairPrefab == null)
+            {
+                _stairPrefab = AssetController.Instance.StairPrefab;
+            }
+        }
+
+        public void SetData(PlayerController playerController, int stairsCount)
+        {
+            _player = playerController;
+            _stairsCount = stairsCount;
         }
 
         public override void Init()
         {
             // _player = GameController.Instance.CurrentLevel.Player;
             base.Init();
+            
+            Debug.Log("StairsStage");
+
+            CreateStairs();
+            StartEvaluation();
+        }
+
+        private void CreateStairs()
+        {
+            var colors = AssetController.Instance.StairColors;
+            var temp = _stairsCount + 5;
+            for (int i = 0; i < temp; i++)
+            {
+                var stair = _stairPrefab.Spawn();
+                var stairT = stair.transform;
+                stairT.SetParent(transform, false);
+                stairT.localPosition = new Vector3(0, i * Stair.Height, i * Stair.Lenght);
+
+                var color = colors[i % colors.Count];
+                var multiplier = 1 + 0.1f * i;
+                stair.Initialize(multiplier, color);
+            }
         }
 
         public override void Dispose()
@@ -37,6 +73,13 @@ namespace Game.Scripts.Behaviours
             {
                 CoroutineController.StopCoroutine(_evaluationRoutineKey);
             }
+
+            foreach (var stair in _stairs)
+            {
+                stair.Recycle();
+            }
+            
+            _stairs.Clear();
         }
 
         public override void StartEvaluation()
@@ -44,14 +87,13 @@ namespace Game.Scripts.Behaviours
             base.StartEvaluation();
             //Complete(true);
 
-            var stairsCount = GetStairsCount(_player.Team.StickMen.Count);
             
             CoroutineController.StartCoroutine(_evaluationRoutineKey, EvaluationRoutine());
         }
 
         private IEnumerator EvaluationRoutine()
         {
-            yield return new WaitUntil(() => !_player.Team.IsRunning);
+            yield return new WaitUntil(() => _player.Team.StickMen.All(s => s.IsStopped));
 
             var stair = GetStair();
             var multiplier = stair != null ? stair.Multiplier : 1;
