@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
 using Game.Scripts.Behaviours;
 using Game.Scripts.Models;
+using Game.Scripts.View;
 using Mek.Controllers;
+using Mek.Coroutines;
 using Mek.Localization;
 using Mek.Models;
+using Mek.Navigation;
 using Mek.Utilities;
 using UnityEngine;
 
@@ -39,6 +42,8 @@ namespace Game.Scripts.Controllers
             CurrentLevel.Completed += OnLevelCompleted;
             
             _playerController.Initialize();
+
+            Navigation.Panel.Change(ViewTypes.InGamePanel);
         }
 
         private void DisposeLevel()
@@ -46,13 +51,26 @@ namespace Game.Scripts.Controllers
             CurrentLevel.Completed -= OnLevelCompleted;
             CurrentLevel.Dispose();
             
-            Destroy(CurrentLevel.gameObject);
-
             _playerController.Dispose();
+            
+            Destroy(CurrentLevel.gameObject, Time.fixedDeltaTime);
         }
-        private void OnLevelCompleted(bool state)
+        private void OnLevelCompleted(bool state, float multiplier)
         {
             Debug.Log($"LevelCompleted: {state}");
+
+            var reward = Mathf.RoundToInt(PlayerData.Instance.PlayerLevel * 10 * multiplier);
+
+            Navigation.Panel.Change(new EndGamePanelParameters(OnRewardClaimed));
+
+            PlayerData.Instance.Coin += reward;
+        }
+
+        private void OnRewardClaimed()
+        {
+            DisposeLevel();
+            
+            CoroutineController.DoAfterFixedUpdate(PrepareGame);
         }
     }
 }

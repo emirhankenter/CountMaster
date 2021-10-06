@@ -12,7 +12,8 @@ namespace Game.Scripts.Behaviours
 {
     public class FriendlyTeam : Team
     {
-        public event Action<bool> PassedFinishLine;
+        public event Action PassedFinishLine;
+        public event Action Failed;
         
         private Vector3? _direction;
 
@@ -32,39 +33,45 @@ namespace Game.Scripts.Behaviours
         protected override void Awake()
         {
             base.Awake();
-            
-            StickMan.FinishLinePassed += OnFinishLinePassed;
-            StickMan.Lost += OnStickManLost;
-            ExaminationBlocks.ExaminationCompleted += OnExaminationCompleted;
-            _followPoint = new GameObject("FollowPoint").transform;
-            _followPoint.SetParent(transform, false);
         }
 
         protected override void Start()
         {
             base.Start();
-            
-            Initialize(1);
-
-            CameraController.Instance.Follow(_followPoint);
-            CameraController.Instance.ChangeState(CameraState.Running);
         }
 
         public override void Initialize(int count)
         {
             base.Initialize(count);
             IsFinished = false;
+            HasPassedFinishLine = false;
             SetRunning(true);
+            
+            StickMan.FinishLinePassed += OnFinishLinePassed;
+            StickMan.Lost += OnStickManLost;
+            ExaminationBlocks.ExaminationCompleted += OnExaminationCompleted;
+
+            if (_followPoint == null)
+            {
+                _followPoint = new GameObject("FollowPoint").transform;
+                _followPoint.SetParent(transform, false);
+            }
+            
+            CameraController.Instance.Follow(_followPoint);
+            CameraController.Instance.ChangeState(CameraState.Running);
         }
 
         public override void Dispose()
         {
             base.Dispose();
-            
+            IsFinished = false;
+            HasPassedFinishLine = false;
+
             StickMan.FinishLinePassed -= OnFinishLinePassed;
             StickMan.Lost -= OnStickManLost;
             ExaminationBlocks.ExaminationCompleted -= OnExaminationCompleted;
             
+            _followPoint.transform.localPosition = Vector3.zero;
             _triangularStickMan.Clear();
         }
 
@@ -72,7 +79,7 @@ namespace Game.Scripts.Behaviours
         {
             if (HasPassedFinishLine) return;
             HasPassedFinishLine = true;
-            PassedFinishLine?.Invoke(true);
+            PassedFinishLine?.Invoke();
             
             // CreateTriangle();
         }
@@ -160,7 +167,7 @@ namespace Game.Scripts.Behaviours
             base.OnStickManLost(stickMan);
             if (_stickMen.Count != 0 || IsFinished) return;
             IsFinished = true;
-            PassedFinishLine?.Invoke(false);
+            Failed?.Invoke();
         }
 
         private void SetRunning(bool state)

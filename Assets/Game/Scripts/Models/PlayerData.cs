@@ -17,15 +17,20 @@ namespace Game.Scripts.Models
 
             // Game Specific PLayerData
             { PrefKeys.PlayerLevel, new IntStat(0, Int32.MaxValue, 1) },
+            { PrefKeys.Coin, new IntStat(0, Int32.MaxValue, 0) },
             { PrefKeys.MusicEnabled, new BoolStat(true) },
             { PrefKeys.SoundFXEnabled, new BoolStat(true) },
-            { PrefKeys.MyTest, new ObjectStat<TestClass>(JsonUtility.ToJson(new TestClass(){Number = 100}))}
         };
 
         public int PlayerLevel
         {
             get => PrefsManager.GetInt(PrefKeys.PlayerLevel);
             set => PrefsManager.SetInt(PrefKeys.PlayerLevel, value);
+        }
+        public int Coin
+        {
+            get => PrefsManager.GetInt(PrefKeys.Coin);
+            set => PrefsManager.SetInt(PrefKeys.Coin, value);
         }
 
         public bool MusicEnabled
@@ -38,12 +43,6 @@ namespace Game.Scripts.Models
         {
             get => PrefsManager.GetBool(PrefKeys.SoundFXEnabled);
             set => PrefsManager.SetBool(PrefKeys.SoundFXEnabled, value);
-        }
-
-        public TestClass MyTestObject
-        {
-            get => PrefsManager.GetObject<TestClass>(PrefKeys.MyTest);
-            set => PrefsManager.SetObject(PrefKeys.MyTest, value);
         }
     }
 }

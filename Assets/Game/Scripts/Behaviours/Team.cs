@@ -38,16 +38,18 @@ namespace Game.Scripts.Behaviours
 
         protected virtual void Start()
         {
-            _stickManPrefab = AssetController.Instance.StickManPrefab;
         }
 
         public virtual void Initialize(int count)
         {
+            _stickManPrefab = AssetController.Instance.StickManPrefab;
             PopulateCrowd(count);
         }
 
         public virtual void Dispose()
         {
+            AttackingTo = null;
+            
             StickMan.Lost -= OnStickManLost;
             
             foreach (var stickMan in _stickMen)

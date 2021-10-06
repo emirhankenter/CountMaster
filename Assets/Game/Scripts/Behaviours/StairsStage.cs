@@ -63,6 +63,7 @@ namespace Game.Scripts.Behaviours
 
                 var color = colors[i % colors.Count];
                 var multiplier = 1 + 0.1f * i;
+                _stairs.Add(stair);
                 stair.Initialize(multiplier, color);
             }
         }

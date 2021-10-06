@@ -26,11 +26,13 @@ namespace Game.Scripts.Controllers
             var teamT = _team.transform;
             teamT.position = Vector3.zero;
             teamT.eulerAngles = Vector3.zero;
+            
+            _team.Initialize(1);
         }
 
         public void Dispose()
         {
-            
+            _team.Dispose();
         }
 
         private void Update()
