@@ -36,6 +36,26 @@ namespace Game.Scripts.Behaviours
             base.OnStickManLost(stickMan);
         }
 
+        public override void DeclareWarWith(Team team)
+        {
+            base.DeclareWarWith(team);
+
+            foreach (var stickMan in _stickMen)
+            {
+                stickMan.SetRunning(true);
+            }
+        }
+
+        protected override void OnBrawlSucceed()
+        {
+            base.OnBrawlSucceed();
+
+            foreach (var stickMan in _stickMen)
+            {
+                stickMan.SetRunning(false);
+            }
+        }
+
 #if UNITY_EDITOR
         [SerializeField, HideInInspector] private SphereCollider _sphereCollider;
         private void OnDrawGizmos()
