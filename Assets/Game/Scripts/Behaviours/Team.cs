@@ -28,6 +28,7 @@ namespace Game.Scripts.Behaviours
         public Team AttackingTo { get; private set; }
         public bool IsAttacking => AttackingTo != null;
         public bool IsLost => _stickMen.Count == 0;
+        public bool IsActive { get; private set; }
 
         public List<StickMan> StickMen => _stickMen;
 
@@ -45,6 +46,8 @@ namespace Game.Scripts.Behaviours
             _stickManPrefab = AssetController.Instance.StickManPrefab;
             PopulateCrowd(count);
             _countContaier.Initialize(TeamSide);
+
+            IsActive = true;
         }
 
         public virtual void Dispose()
@@ -58,6 +61,8 @@ namespace Game.Scripts.Behaviours
                 stickMan.Recycle();
             }
             _stickMen.Clear();
+
+            IsActive = false;
         }
         
         [Button]
@@ -170,6 +175,7 @@ namespace Game.Scripts.Behaviours
         {
             AttackingTo = null;
             ToggleAgents(false);
+            IsActive = false;
             // SetPositions(false);
         }
 
@@ -191,6 +197,25 @@ namespace Game.Scripts.Behaviours
 
         protected virtual void FixedUpdate()
         {
+            if (!IsActive) return;
+
+            var center = Vector3.zero;
+            var sum = Vector3.zero;
+            
+            for (int i = 0; i < _stickMen.Count; i++)
+            {
+                var stickMan = _stickMen[i];
+                sum += stickMan.transform.localPosition;
+            }
+            
+            Debug.Log($"Sum:{sum}, Center: {center}");
+
+            if (_stickMen.Count > 0)
+            {
+                center = sum / _stickMen.Count;
+                _countContaier.transform.localPosition = center + Vector3.up * 3.5f;
+            }
+            
             if (!IsAttacking) return;
 
             if (AttackingTo.IsLost)

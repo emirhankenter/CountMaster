@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Game.Scripts.Behaviours;
 using Game.Scripts.Models;
 using Game.Scripts.View;
@@ -31,7 +32,10 @@ namespace Game.Scripts.Controllers
             {
                 Debug.Log("Ready");
             });
-            
+        }
+
+        private void Start()
+        {
             PrepareGame();
         }
 
