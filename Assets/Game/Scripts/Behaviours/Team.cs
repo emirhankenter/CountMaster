@@ -18,9 +18,9 @@ namespace Game.Scripts.Behaviours
     public abstract class Team : MonoBehaviour
     {
         public abstract TeamSide TeamSide { get; }
-        
+
+        [SerializeField] protected CountContaier _countContaier;
         [ShowInInspector, ReadOnly] protected List<StickMan> _stickMen = new List<StickMan>();
-        
         
         private StickMan _stickManPrefab;
         
@@ -44,6 +44,7 @@ namespace Game.Scripts.Behaviours
         {
             _stickManPrefab = AssetController.Instance.StickManPrefab;
             PopulateCrowd(count);
+            _countContaier.Initialize(TeamSide);
         }
 
         public virtual void Dispose()
@@ -86,6 +87,8 @@ namespace Game.Scripts.Behaviours
             {
                 stickMan.Initialize(this);
             }
+            
+            UpdateStickManCountText();
         }
         
         protected void SetPositions(bool instant = true)
@@ -182,6 +185,8 @@ namespace Game.Scripts.Behaviours
         {
             // stickMan.Recycle();
             _stickMen.Remove(stickMan);
+            
+            UpdateStickManCountText();
         }
 
         protected virtual void FixedUpdate()
@@ -210,6 +215,11 @@ namespace Game.Scripts.Behaviours
             }
 
             return stickMan;
+        }
+
+        private void UpdateStickManCountText()
+        {
+            _countContaier.UpdateCount(_stickMen.Count);
         }
 
         private void OnTriggerEnter(Collider other)

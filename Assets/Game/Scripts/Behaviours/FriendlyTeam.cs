@@ -80,6 +80,7 @@ namespace Game.Scripts.Behaviours
             if (HasPassedFinishLine) return;
             HasPassedFinishLine = true;
             PassedFinishLine?.Invoke();
+            _countContaier.gameObject.SetActive(false);
             
             // CreateTriangle();
         }
