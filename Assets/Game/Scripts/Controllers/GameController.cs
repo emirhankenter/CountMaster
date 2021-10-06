@@ -72,7 +72,11 @@ namespace Game.Scripts.Controllers
             Navigation.Panel.Change(new EndGamePanelParameters(reward, OnRewardClaimed));
 
             PlayerData.Instance.Coin += reward;
-            PlayerData.Instance.PlayerLevel++;
+            
+            if (state)
+            {
+                PlayerData.Instance.PlayerLevel++;
+            }
             
             AnalyticsController.Instance.LogEvent(GAErrorSeverity.Debug, $"LevelCompleted:{(state ? 1 : 0)}");
         }

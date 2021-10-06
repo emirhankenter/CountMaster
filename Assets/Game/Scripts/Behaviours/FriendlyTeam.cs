@@ -18,7 +18,7 @@ namespace Game.Scripts.Behaviours
         private Vector3? _direction;
 
         private const float ForwardSpeed = 10f;
-        private const float HorizontalSpeed = 2500f;
+        private const float HorizontalSpeed = 1f;
 
         public override TeamSide TeamSide => TeamSide.Friendly;
 

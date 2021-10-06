@@ -91,9 +91,9 @@ namespace Game.Scripts.Controllers
             if (!CanPlay) return;
             if (_lastMousePos == null || _currentMousePos == null) return;
             
-            var currentScreenPoint = _cam.ScreenToViewportPoint(new Vector3(_currentMousePos.Value.x, _currentMousePos.Value.y, _cam.nearClipPlane));
-            var lastScreenPoint = _cam.ScreenToViewportPoint(new Vector3(_lastMousePos.Value.x, _lastMousePos.Value.y, _cam.nearClipPlane));
-            var delta = currentScreenPoint - lastScreenPoint;
+            // var currentScreenPoint = _cam.ScreenToViewportPoint(new Vector3(_currentMousePos.Value.x, _currentMousePos.Value.y, _cam.nearClipPlane));
+            // var lastScreenPoint = _cam.ScreenToViewportPoint(new Vector3(_lastMousePos.Value.x, _lastMousePos.Value.y, _cam.nearClipPlane));
+            var delta = _currentMousePos - _lastMousePos;
             
             // Debug.Log(delta);
             // delta = _currentMousePos.Value - _lastMousePos.Value;
@@ -101,7 +101,7 @@ namespace Game.Scripts.Controllers
             
             // _stickMan.transform.position += new Vector3(delta.x * screenRatio * 10f, 0, 0);
 
-            var direction = new Vector3(delta.x * screenRatio, 0, 0);
+            var direction = new Vector3(delta.Value.x, 0, 0);
 
             _team.LeanTowards(direction);
         }
